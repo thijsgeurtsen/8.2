@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Breuk naar procent</title>
+  <style>
+    body{font-family:system-ui,sans-serif;background:#f4f4ff;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0}
+    .container{background:#fff;padding:2rem 2.5rem;border-radius:1.5rem;box-shadow:0 10px 30px rgba(0,0,0,.1);max-width:560px;width:95%;text-align:center}
+    .back{font-size:.85rem;margin-bottom:1rem;text-align:left}
+    .back a{color:#4f46e5;text-decoration:none}
+    h1{margin:0 0 .4rem;font-size:1.9rem}
+    .subtitle{color:#555;margin:0 0 1.3rem;font-size:.95rem}
+    .stats{display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem;font-size:1rem}
+    .question{font-size:2.6rem;margin:1rem 0;min-height:2.6rem}
+    #answer{font-size:1.6rem;padding:.4rem .8rem;width:220px;text-align:center;border-radius:.75rem;border:2px solid #ccc;outline:none}
+    #answer:focus{border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.15)}
+    button{margin-top:1.1rem;padding:.75rem 1.5rem;font-size:1rem;border-radius:999px;border:none;cursor:pointer;background:#4f46e5;color:#fff;font-weight:800}
+    button:disabled{background:#bbb;cursor:default}
+    .hint{color:#666;font-size:.9rem;margin-top:-.4rem}
+    .feedback{height:1.4rem;margin-top:.5rem;font-weight:900}
+    .correct{color:#16a34a}
+    .wrong{color:#dc2626}
+    .result{margin-top:1.2rem;font-size:1rem}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="back"><a href="index.html">← Terug</a></div>
+    <h1>Rekenoefeningen</h1>
+    <p class="subtitle">Breuk → procent (belangrijke breuken)</p>
+
+    <div class="stats">
+      <div>⏱ <span id="time">2:00</span></div>
+      <div>✅ <span id="score">0</span></div>
+      <div>📊 <span id="attempts">0</span></div>
+    </div>
+
+    <div class="question" id="question">Druk op start</div>
+    <div class="hint">Typ het procent (bijv. 25). Enter om te controleren.</div>
+
+    <input id="answer" type="text" disabled placeholder="procent">
+    <div id="feedback" class="feedback"></div>
+
+    <button id="startBtn">Start 2-minutentest</button>
+    <div id="result" class="result"></div>
+  </div>
+
+<script>
+  const timeEl=document.getElementById("time");
+  const scoreEl=document.getElementById("score");
+  const attemptsEl=document.getElementById("attempts");
+  const questionEl=document.getElementById("question");
+  const answerEl=document.getElementById("answer");
+  const feedbackEl=document.getElementById("feedback");
+  const startBtn=document.getElementById("startBtn");
+  const resultEl=document.getElementById("result");
+
+  let timeLeft=120,timer=null,score=0,attempts=0,active=false;
+  let correct=0;
+
+  const important = [
+    {f:"1/2", p:50},
+    {f:"1/4", p:25},
+    {f:"3/4", p:75},
+    {f:"1/5", p:20},
+    {f:"2/5", p:40},
+    {f:"3/5", p:60},
+    {f:"4/5", p:80},
+    {f:"1/10", p:10},
+    {f:"3/10", p:30},
+    {f:"7/10", p:70},
+    {f:"1/8", p:12.5},
+    {f:"3/8", p:37.5},
+    {f:"5/8", p:62.5},
+    {f:"7/8", p:87.5},
+    {f:"1/3", p:33.33},
+    {f:"2/3", p:66.67}
+  ];
+
+  function fmt(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
+  function pick(a){return a[Math.floor(Math.random()*a.length)];}
+  function norm(s){return (s||"").trim().replace(",",".");}
+
+  function newQ(){
+    const item = pick(important);
+    questionEl.textContent = `${item.f} = ? %`;
+    correct = item.p;
+    answerEl.value="";
+    answerEl.focus();
+  }
+
+  function start(){
+    if(active) return;
+    active=true; score=0; attempts=0; timeLeft=120;
+    scoreEl.textContent=0; attemptsEl.textContent=0;
+    feedbackEl.textContent=""; resultEl.textContent="";
+    answerEl.disabled=false; startBtn.disabled=true;
+
+    newQ();
+    timeEl.textContent=fmt(timeLeft);
+    timer=setInterval(()=>{
+      timeLeft--; timeEl.textContent=fmt(timeLeft);
+      if(timeLeft<=0) end();
+    },1000);
+  }
+
+  function end(){
+    if(!active) return;
+    active=false; clearInterval(timer);
+    answerEl.disabled=true; startBtn.disabled=false;
+    const pct=Math.round((score/attempts)*100)||0;
+    resultEl.textContent=`Je had ${score} goed van ${attempts} (${pct}%).`;
+  }
+
+  function submit(){
+    if(!active) return;
+    const raw = norm(answerEl.value);
+    if(raw==="") return;
+
+    const user = Number(raw);
+    attempts++; attemptsEl.textContent=attempts;
+
+    const ok = Number.isFinite(user) && Math.abs(user - correct) < 0.6; // tolerantie voor 33.33/66.67
+
+    if(ok){
+      score++; scoreEl.textContent=score;
+      feedbackEl.textContent="Goed!";
+      feedbackEl.className="feedback correct";
+    } else {
+      feedbackEl.textContent=`Helaas, het was ${correct}%`;
+      feedbackEl.className="feedback wrong";
+    }
+    newQ();
+  }
+
+  startBtn.addEventListener("click", start);
+  answerEl.addEventListener("keydown",(e)=>{ if(e.key==="Enter") submit(); });
+</script>
+</body>
+</html>
