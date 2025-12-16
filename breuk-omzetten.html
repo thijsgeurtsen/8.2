@@ -3,7 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <title>Breuk omzetten</title>
-<style>
+<style>.fraction {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.fraction .top,
+.fraction .bottom {
+  padding: 0 .3rem;
+}
+
+.fraction .bar {
+  width: 1.2em;
+  height: 3px;
+  background: black;
+  margin: .15rem 0;
+}
+
   body{
     font-family: system-ui, sans-serif;
     background:#f4f6ff;
@@ -86,7 +105,13 @@ function newQuestion(){
   const item = fractions[Math.floor(Math.random()*fractions.length)];
   const mode = Math.random()<0.5 ? "dec" : "perc";
 
-  qEl.textContent = item.f;
+qEl.innerHTML = `
+  <span class="fraction">
+    <span class="top">${item.f.split("/")[0]}</span>
+    <span class="bar"></span>
+    <span class="bottom">${item.f.split("/")[1]}</span>
+  </span>
+`;
   if(mode==="dec"){
     iEl.textContent = "Schrijf als decimaal";
     correct = item.dec;
